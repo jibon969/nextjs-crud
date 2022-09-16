@@ -34,3 +34,37 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+*.py[cod]
+.*
+!.dockerignore
+!.github
+!.gitignore
+!.pylintrc
+!.vscode
+*.log
+*.pot
+*.pyc
+local_settings.py
+__pycache__/
+build/
+coverage/
+dist/
+*\.egg*
+# data
+/media/
+/node_modules/
+/static/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+.idea/
+/.idea/
