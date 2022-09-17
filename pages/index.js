@@ -2,7 +2,8 @@ import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 
-export default function Home() {
+export default function Home({all_student}) {
+    // console.log("all student :", all_student);
     return (
         <div className={styles.container}>
             <div className="container my-5">
@@ -54,23 +55,27 @@ export default function Home() {
                             </tr>
                             </thead>
                             <tbody>
-                            <tr className="text-center">
-                                <th scope="row">1</th>
-                                <td>Mark</td>
-                                <td>Otto</td>
-                                <td>@mdo</td>
-                                <td>
-                                    <button type="button" className="btn btn-primary mx-2">Edit</button>
-                                    <button type="button" className="btn btn-danger">Delete</button>
-                                </td>
-                            </tr>
+                            {all_student.map((student, index) => (
+
+                                <tr className="text-center" key={index}>
+                                    <th scope="row">{student.id}</th>
+                                    <td>{student.name}</td>
+                                    <td>{student.dept}</td>
+                                    <td>{student.roll}</td>
+                                    <td>
+                                        <button type="button" className="btn btn-primary mx-2">Edit</button>
+                                        <button type="button" className="btn btn-danger">Delete</button>
+                                    </td>
+                                </tr>
+                            ))
+                            }
                             </tbody>
                         </table>
                     </div>
                 </div>
                 <div className="row">
                     <div className="col">
-                        <div style={{float:"right"}}>
+                        <div style={{float: "right"}}>
                             <nav aria-label="Page navigation example">
                                 <ul className="pagination">
                                     <li className="page-item"><a className="page-link" href="#">Previous</a></li>
@@ -87,3 +92,19 @@ export default function Home() {
         </div>
     )
 }
+
+
+export const getStaticProps = async () => {
+
+    // Fetching data from jsonplaceholder.
+    const res = await fetch(
+        'http://127.0.0.1:8000/student-list/');
+    let student = await res.json();
+
+    // Sending fetched data to the page component via props.
+    return {
+        props: {
+            'all_student': student
+        }
+    }
+};
