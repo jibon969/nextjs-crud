@@ -1,9 +1,110 @@
-import Head from 'next/head'
-import Image from 'next/image'
+import React, {useState, useEffect} from 'react'
 import styles from '../styles/Home.module.css'
+import Link from 'next/link'
 
-export default function Home({all_student}) {
-    // console.log("all student :", all_student);
+export default function Home() {
+
+    const [student, setStudent] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        fetch('http://127.0.0.1:8000/student-list/')
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(
+                        `This is an Http errors : ${response.status}`
+                    )
+                }
+                return response.json()
+            })
+            .then((actualData) => {
+                setStudent(actualData);
+                setError(null);
+            })
+            .catch((err) => {
+                setError(err.message);
+                setStudent(null);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, []);
+
+
+    // POST
+    const [name, setName] = useState('');
+    const [dept, setDept] = useState('');
+    const [roll, setRoll] = useState('');
+
+    const addStudent = (event) => {
+        event.preventDefault();
+        let data = {name, dept, roll};
+        fetch(`http://127.0.0.1:8000/add-student/`, {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+            .then((res) => console.log("adding .....", res))
+            .catch((err) => {
+                console.log(err.message)
+            })
+    };
+
+
+    // Delete Student
+    const deleteStudent = (id) => {
+        fetch(`http://127.0.0.1:8000/delete-student/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'Content-type': 'application/json'
+            }
+        }).then((remove) => console.log("removed :", remove))
+            .catch((err) => {
+                console.log(err.message)
+            })
+    };
+
+
+    // Get single data
+
+    const getSingleData = (id) => {
+        fetch(`http://127.0.0.1:8000/update-student/${id}/`)
+            .then((response) => response.json())
+            .then((actualData) => setStudent(actualData))
+            .catch((err) => {
+                console.log(err.message)
+            });
+    };
+
+    // POST
+    const updateStudent = (event) => {
+
+
+        event.preventDefault();
+        let data = {name, dept, roll};
+        fetch(`http://127.0.0.1:8000/update-student/${id}/`, {
+            method: "PUT",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        }).then((res) => {
+            setName(res.name);
+            setDept(res.dept);
+            setRoll(res.roll);
+        })
+            .catch((err) => {
+                console.log(err.message)
+            })
+
+    };
+
+
     return (
         <div className={styles.container}>
             <div className="container my-5">
@@ -21,18 +122,45 @@ export default function Home({all_student}) {
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5 className="modal-title" id="exampleModalLabel">Modal title</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                aria-label="Close"></button>
+                                        <button type="button" className="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"/>
                                     </div>
                                     <div className="modal-body">
                                         <form action="#">
-                                            <input type="text" className="form-control mb-3" placeholder="Name"/>
-                                            <input type="text" className="form-control mb-3" placeholder="Dept"/>
-                                            <input type="text" className="form-control mb-3" placeholder="Roll"/>
+                                            <input
+                                                type="text"
+                                                className="form-control mb-3"
+                                                placeholder="Name"
+                                                name="name"
+                                                value={name}
+                                                onChange={(e) => {
+                                                    setName(e.target.value)
+                                                }}
+                                            />
+                                            <input
+                                                type="text"
+                                                className="form-control mb-3"
+                                                placeholder="Department"
+                                                name="dept"
+                                                value={dept}
+                                                onChange={(e) => {
+                                                    setDept(e.target.value)
+                                                }}
+                                            />
+                                            <input
+                                                type="number"
+                                                className="form-control mb-3"
+                                                placeholder="Roll"
+                                                name="roll"
+                                                value={roll}
+                                                onChange={(e) => {
+                                                    setRoll(e.target.value)
+                                                }}
+                                            />
                                         </form>
                                     </div>
                                     <div className="modal-footer">
-                                        <button type="button" className="btn btn-primary">Save changes</button>
+                                        <button className="btn btn-success" onClick={addStudent}>Submit</button>
                                     </div>
                                 </div>
                             </div>
@@ -55,16 +183,72 @@ export default function Home({all_student}) {
                             </tr>
                             </thead>
                             <tbody>
-                            {all_student.map((student, index) => (
+                            {student.map((s, index) => (
 
                                 <tr className="text-center" key={index}>
-                                    <th scope="row">{student.id}</th>
-                                    <td>{student.name}</td>
-                                    <td>{student.dept}</td>
-                                    <td>{student.roll}</td>
+                                    <th scope="row">{s.id}</th>
+                                    <td>{s.name}</td>
+                                    <td>{s.dept}</td>
+                                    <td>{s.roll}</td>
                                     <td>
-                                        <button type="button" className="btn btn-primary mx-2">Edit</button>
-                                        <button type="button" className="btn btn-danger">Delete</button>
+                                        <Link href={`/update/${s.id}`}>
+                                            <a type="button" className="btn btn-primary mx-2" data-bs-toggle="modal"
+                                               data-bs-target="#exampleModal2">Edit</a>
+                                        </Link>
+                                        <div className="modal fade" id="exampleModal2" tabIndex="-1"
+                                             aria-labelledby="exampleModal2" aria-hidden="true">
+                                            <div className="modal-dialog">
+                                                <div className="modal-content">
+                                                    <div className="modal-header">
+                                                        <h5 className="modal-title" id="exampleModalLabel">Modal
+                                                            title</h5>
+                                                        <button type="button" className="btn-close"
+                                                                data-bs-dismiss="modal" aria-label="Close"/>
+                                                    </div>
+                                                    <div className="modal-body">
+                                                        <form>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control mb-3"
+                                                                placeholder="Name"
+                                                                name="name"
+                                                                value={name}
+                                                                onChange={(e) => {
+                                                                    setName(e.target.value)
+                                                                }}
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                className="form-control mb-3"
+                                                                placeholder="dept .."
+                                                                name="dept"
+                                                                value={dept}
+                                                                onChange={(e) => {
+                                                                    setDept(e.target.value)
+                                                                }}
+                                                            />
+                                                            <input
+                                                                type="number"
+                                                                className="form-control mb-3"
+                                                                placeholder="Roll"
+                                                                name="roll"
+                                                                value={roll}
+                                                                onChange={(e) => {
+                                                                    setRoll(e.target.value)
+                                                                }}
+                                                            />
+                                                            <button type="button" className="btn btn-primary" onClick={updateStudent}>Update
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            className="btn btn-danger"
+                                            onClick={() => deleteStudent(s.id)}>
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))
@@ -92,19 +276,3 @@ export default function Home({all_student}) {
         </div>
     )
 }
-
-
-export const getStaticProps = async () => {
-
-    // Fetching data from jsonplaceholder.
-    const res = await fetch(
-        'http://127.0.0.1:8000/student-list/');
-    let student = await res.json();
-
-    // Sending fetched data to the page component via props.
-    return {
-        props: {
-            'all_student': student
-        }
-    }
-};
